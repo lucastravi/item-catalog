@@ -439,7 +439,7 @@ def ItemJSON(category_name, item_name):
     return jsonify(item=[item.serialize])
 
 
-# Always at end of file !Important!
+
 if __name__ == '__main__':
     app.secret_key = 'DEV_SECRET_KEY'
     app.debug = True
