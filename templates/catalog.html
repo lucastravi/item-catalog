@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}PokeFlask 0.1{% endblock title %}
+
+{% block content %}
+{% include "includes/_nav.html" %}
+{% include "includes/_flash.html" %}
+
+<!-- Page Content -->
+<section id="catalog" class="section">
+
+    <div class="container mb-5">
+        <div class="row">
+
+        {% include 'includes/_categories.html' %}
+
+        <!--showLastItems-->
+          <div class="col-9">
+              <h2><i class="fas fa-clock"></i> Latest Items</h2>
+              {% for i in items %}
+              <div class="thumbnail">
+                  <a href = "{{url_for('showItem', category_name = i.category.name, item_name = i.name)}}">
+                      <img class="img-responsive mx-auto pt-4" src="{{ i.picture }}" alt="{{ i.name }}">
+                      <h2>{{ i.name }}</h4>
+                      <h3>({{ i.category.name }})</h3>
+                      <h4 class="pull-right mb-3">Last update: {{ i.date.strftime("%-d-%b-%Y at %I:%M %p") }}</h4>
+                  </a>
+              </div>
+              {% endfor %}
+          </div>
+        <!--/showLastItems---->
+      </div>
+    </div>
+    <!-- /.container -->
+
+</section>
+<!-- /.section -->
+{% endblock %}

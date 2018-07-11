@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "includes/_nav.html" %}
+{% include "includes/_flash.html" %}
+
+<!-- Page Content -->
+<section id="showItem" class="section">
+
+    <div class="container mb-5">
+
+        <div class="row">
+
+          {% include 'includes/_categories.html' %}
+
+          <div class="col-9">
+            <div class="offset-md-3 col-12">
+            <div class="btn-group mx-auto mb-3" role="group" aria-label="Edit or Delete Category">
+              <button type="button" class="btn btn-primary"><h3><a href = "{{url_for('editCategory', category_name = category)}}">Edit Type</a></h3></button>
+              <button type="button" class="btn btn-danger"><h3><a href = "{{url_for('deleteCategory', category_name = category)}}">Delete Type</a></h3></button>
+              </div>
+            </div>
+                <h2>Items (<strong>{{count}}</strong>)</h2>
+                {% for i in items %}
+              <div class="thumbnail">
+                <a href = "{{url_for('showItem', category_name = i.category.name, item_name = i.name)}}">
+                <img class="img-responsive mx-auto pt-4" src="{{ i.picture }}" alt="{{ i.name }}">
+                  <h2 class="ml-5 mb-3">{{ i.name }}</h2>
+                </a>
+                </div>
+                {% endfor %}
+
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /.container -->
+</section>
+<!-- /.section -->
+
+{% endblock %}

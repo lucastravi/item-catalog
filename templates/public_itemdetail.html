@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.name }}{% endblock title %}
+
+{% block content %}
+{% include "includes/_nav.html" %}
+{% include "includes/_flash.html" %}
+
+<!-- Page Content -->
+<section id="itemDetail" class="section">
+
+    <div class="container">
+
+        <div class="row">
+
+          {% include 'includes/_categories.html' %}
+
+          <div class="col-8">
+              <div class="thumbnail">
+                  <img class="img-responsive pt-4" src="{{ item.picture }}" alt="{{ item.name }}">
+                      <h2 class="name-detail ml-5">{{ item.name }}</h2>
+                      <p class="desc-detail ml-5 pb-4 mr-5">{{ item.description }}</p>
+                  </div>
+
+              </div>
+
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /.container -->
+</section>
+<!-- /.section -->
+
+{% endblock %}

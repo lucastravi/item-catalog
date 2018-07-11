@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "includes/_nav.html" %}
+{% include "includes/_flash.html" %}
+
+<!-- Page Content -->
+<section id="itemDetail" class="section">
+
+    <div class="container">
+
+        <div class="row">
+
+            {% include 'includes/_categories.html' %}
+
+            <div class="col-8">
+                <div class="thumbnail">
+                    <img class="img-responsive pt-4" src="{{ item.picture }}" alt="{{ item.name }}">
+                        <h2 class="name-detail ml-5">{{ item.name }}</h2>
+                        <p class="desc-detail ml-5 pb-4 mr-5">{{ item.description }}</p>
+                        <div class="offset-md-3 col-12 pb-4">
+                          <div class="btn-group mx-auto mb-3" role="group" aria-label="Edit or Delete Category">
+                            <button type="button" class="btn btn-primary"><h3><a href = "{{url_for('editItem', category_name = item.category, item_name = item.name)}}"><i class="fas fa-pen-square"></i> Edit</a></h3></button>
+                            <button type="button" class="btn btn-danger"><h3><a href = "{{url_for('deleteItem', category_name = item.category, item_name = item.name)}}"><i class="fas fa-trash-alt"></i> Delete</a></h3></button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /.container -->
+</section>
+<!-- /.section -->
+
+{% endblock %}

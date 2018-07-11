@@ -1,0 +1,97 @@
+body,
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-image: url("../img/background_img.jpg");
+  font-family: 'Coda', cursive;
+  font-size: 20px;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: .02em;
+  overflow-x: hidden;
+}
+p {
+  margin: 0;
+}
+img {
+  height: auto;
+  max-width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.navbar-brand {
+  width: 5%;
+}
+
+.nav-pills {
+  background-color: rgba(155, 155, 155, 0.7);
+  font-size: 1.5em;
+}
+
+.nav-pills > a {
+  color: rgb(17, 17, 17)
+}
+
+.thumbnail {
+  background-color: rgba(155, 155, 155, 0.7);
+  width: 80%;
+}
+
+.thumbnail > a > h2 {
+  color: rgb(17, 17, 17);
+  font-size: 3em;
+  padding-left: 1%;
+}
+
+.thumbnail > a > h3 {
+  color: rgb(17, 17, 17);
+  font-size: 1.5em;
+  padding-left: 1%;
+}
+
+.thumbnail > a > h4 {
+  color: rgb(17, 17, 17);
+  font-size: 1em;
+  padding-left: 1%;
+}
+
+.thumbnail > a:hover {
+  text-decoration: none;
+}
+
+.btn-group-vertical {
+  width: 100%;
+}
+
+.btn-dark {
+  font-size: 1.5em;
+}
+
+.btn-dark > a {
+  color: #fff;
+}
+
+.btn-group {
+  display: block;
+}
+
+.btn-group > .btn > h3 > a {
+  color: #fff;
+}
+
+.btn-group > .btn > h3 > a:hover {
+  text-decoration: none;
+}
+
+.name-detail {
+  font-size: 3em;
+}
+
+.desc-detail {
+  font-size: 1.5em;
+}
