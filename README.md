@@ -41,7 +41,7 @@ It's important to accomplish those steps if you want the maximum experience from
 13. Place JSON file in item-catalog directory that you cloned
 14. Run application ($ python /item-catalog/app.py)
 
-## Future Versions will have
+## Future Versions
 1. Responsive layout for phone and tablet screen sizes (The version 0.1 is optimized only for desktop screens)
 2. A search bar to find Pokemons by name, type or user (creator)
 
@@ -72,4 +72,4 @@ Category Item JSON: `/catalog/<path:category_name>/<path:item_name>/JSON`
 9. To check all the users (sqlite select * from user)
 
 ## Considerations
-This application can be used for another purposes instead of Pokemon. The py and db files are generic named with item and category. I hope you enjoy it!
+This application can be used for another purposes instead of Pokemon. The py files are generic named with item and category. I hope you enjoy it!
