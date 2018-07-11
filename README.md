@@ -73,3 +73,6 @@ Category Item JSON: `/catalog/<path:category_name>/<path:item_name>/JSON`
 
 ## Considerations
 This application can be used for another purposes instead of Pokemon. The py files are generic named with item and category. I hope you enjoy it!
+
+## Copyrights
+All the codes wich helped in this application development were obtained from open source fonts, such as GitHub, Stackoverflow, Udacity forums, etc.
