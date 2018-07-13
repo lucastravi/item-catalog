@@ -24,18 +24,9 @@
 </head>
 <body>
 
-    <div class="border-site bs-top"></div>
-    <div class="border-site bs-right"></div>
-    <div class="border-site bs-left"></div>
-    <div class="border-site bs-bottom"></div>
-
     {% block content %}
     {% endblock content %}
 
-    <!--bootstrap.js-->
-    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    <!--retina.js-->
-    <script src="{{ url_for('static', filename='js/retina.min.js') }}"></script>
     <!--Google Login-->
     <script>
     function signInCallback(authResult) {

@@ -1,62 +1,65 @@
-#===================
+# ===================
 # PokeFlask 0.1 - A Python-Flask WebApp for Pokemon Fans
-#===================
+# ===================
 
-#===================
+# ===================
 # Imports
-#===================
+# ===================
 
 from flask import Flask, render_template, url_for, request, redirect, flash, jsonify, make_response
 from flask import session as login_session
-from sqlalchemy import create_engine, asc, desc
-from sqlalchemy.orm import sessionmaker
-from database_setup import *
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
-import os, random, string, datetime, json, httplib2, requests
+import os
+import random
+import string
+import datetime
+import json
+import httplib2
+import requests
 # Import login_required from login_decorator.py
 from login_decorator import login_required
 
-#===================
+# Import the CRUD functions
+import crud
+
+# To exclude later
+from sqlalchemy import create_engine, asc, desc
+from sqlalchemy.orm import sessionmaker
+from database_setup import *
+
+# ===================
 # Flask app instance
-#===================
+# ===================
 app = Flask(__name__)
 
-#===================
+# ===================
 # Read CLIENT_SECRETS from Google API
-#===================
+# ===================
 
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 print(CLIENT_ID)
 
-#===================
-# Database handling
-#===================
 
-# Connect to database
-engine = create_engine('sqlite:///itemcatalog.db')
-Base.metadata.bind = engine
-
-# Create session
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
-
-
-#===================
+# ===================
 # Google Login Authetication and Logout
-#===================
+# ===================
 
 # Login - Create anti-forgery state token
 @app.route('/login')
 def showLogin():
     state = ''.join(
-        random.choice(string.ascii_uppercase + string.digits) for x in range(32))
+        random.choice(
+            string.ascii_uppercase +
+            string.digits) for x in range(32))
     login_session['state'] = state
     # return "The current session state is %s" % login_session['state']
     return render_template('login.html', STATE=state)
 
 # GConnect flow
+
+
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     # Validate state token
@@ -113,8 +116,8 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
-                                 200)
+        response = make_response(
+            json.dumps('Current user is already connected.'), 200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -133,7 +136,8 @@ def gconnect():
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
 
-    # Check if user exists, if it doesn't make a new one with Google Credentials
+    # Check if user exists, if it doesn't make a new one with Google
+    # Credentials
     user_id = getUserID(login_session['email'])
     if not user_id:
         user_id = createUser(login_session)
@@ -149,28 +153,6 @@ def gconnect():
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     return output
-
-# User-login Helper Functions
-def createUser(login_session):
-    newUser = User(name=login_session['username'], email=login_session[
-                   'email'], picture=login_session['picture'])
-    session.add(newUser)
-    session.commit()
-    user = session.query(User).filter_by(email=login_session['email']).one()
-    return user.id
-
-
-def getUserInfo(user_id):
-    user = session.query(User).filter_by(id=user_id).one()
-    return user
-
-
-def getUserID(email):
-    try:
-        user = session.query(User).filter_by(email=email).one()
-        return user.id
-    except:
-        return None
 
 
 # DISCONNECT - Revoke a current user's token and reset their login_session
@@ -204,243 +186,259 @@ def gdisconnect():
         return response
 
 # Pokedex Catalog Homepage
+
+
 @app.route('/')
 @app.route('/catalog/')
 def showCatalog():
-    categories = session.query(Category).order_by(asc(Category.name))
-    items = session.query(Items).order_by(desc(Items.date)).limit(3)
+    categories = crud.findAllCategories()
+    items = crud.findAllLastItems()
     return render_template('catalog.html',
-                            categories = categories,
-                            items = items)
+                           categories=categories,
+                           items=items)
 
 # Pokemon for each type page
+
+
 @app.route('/catalog/<path:category_name>/items/')
 def showCategory(category_name):
-    categories = session.query(Category).order_by(asc(Category.name))
-    category = session.query(Category).filter_by(name=category_name).one()
-    items = session.query(Items).filter_by(category=category).order_by(asc(Items.name)).all()
+    categories = crud.findAllCategories()
+    category = crud.findCategory(category_name)
+    items = crud.findCategoryItems(category)
     print items
-    count = session.query(Items).filter_by(category=category).count()
-    creator = getUserInfo(category.user_id)
+    count = crud.countItems(category)
+    creator = crud.getUserInfo(category.user_id)
     if 'username' not in login_session or creator.id != login_session['user_id']:
         return render_template('public_items.html',
-                                category = category.name,
-                                categories = categories,
-                                items = items,
-                                count = count)
+                               category=category.name,
+                               categories=categories,
+                               items=items,
+                               count=count)
     else:
-        user = getUserInfo(login_session['user_id'])
+        user = crud.getUserInfo(login_session['user_id'])
         return render_template('items.html',
-                                category = category.name,
-                                categories = categories,
-                                items = items,
-                                count = count,
-                                user=user)
+                               category=category.name,
+                               categories=categories,
+                               items=items,
+                               count=count,
+                               user=user)
 
 # Shows a specific Pokemon
+
+
 @app.route('/catalog/<path:category_name>/<path:item_name>/')
 def showItem(category_name, item_name):
-    item = session.query(Items).filter_by(name=item_name).one()
-    creator = getUserInfo(item.user_id)
-    categories = session.query(Category).order_by(asc(Category.name))
+    item = crud.findItem(item_name)
+    creator = crud.getUserInfo(item.user_id)
+    categories = crud.findAllCategories()
     if 'username' not in login_session or creator.id != login_session['user_id']:
         return render_template('public_itemdetail.html',
-                                item = item,
-                                category = category_name,
-                                categories = categories,
-                                creator = creator)
+                               item=item,
+                               category=category_name,
+                               categories=categories,
+                               creator=creator)
     else:
         return render_template('itemdetail.html',
-                                item = item,
-                                category = category_name,
-                                categories = categories,
-                                creator = creator)
+                               item=item,
+                               category=category_name,
+                               categories=categories,
+                               creator=creator)
 
 # Add a Pokemon Type to the Pokedex DB
+
+
 @app.route('/catalog/addcategory', methods=['GET', 'POST'])
 @login_required
 def addCategory():
     if request.method == 'POST':
-        newCategory = Category(
-            name=request.form['name'],
-            user_id=login_session['user_id'])
-        print newCategory
-        session.add(newCategory)
-        session.commit()
-        flash('Type Successfully Added!')
-        return redirect(url_for('showCatalog'))
+        new_category_name = request.form['name']
+        crud_function = crud.newCategory(new_category_name)
+        if crud_function:
+            return render_template('addcategory.html', error=crud_function)
+        else:
+            flash('Type Successfully Added!')
+            return redirect(url_for('showCatalog'))
     else:
         return render_template('addcategory.html')
 
 # Edit a Pokemon Type
+
+
 @app.route('/catalog/<path:category_name>/edit', methods=['GET', 'POST'])
 @login_required
 def editCategory(category_name):
-    editedCategory = session.query(Category).filter_by(name=category_name).one()
-    category = session.query(Category).filter_by(name=category_name).one()
+    editedCategory = crud.findCategory(category_name)
+    category = crud.findCategory(category_name)
     # See if the logged in user is the owner of the Type
-    creator = getUserInfo(editedCategory.user_id)
-    user = getUserInfo(login_session['user_id'])
+    creator = crud.getUserInfo(editedCategory.user_id)
+    user = crud.getUserInfo(login_session['user_id'])
     # If logged in user != Type owner redirect them
     if creator.id != login_session['user_id']:
-        flash ("You cannot edit this Type. This Type belongs to %s" % creator.name)
+        flash(
+            "You cannot edit this Type. This Type belongs to %s" %
+            creator.name)
         return redirect(url_for('showCatalog'))
     # POST methods
     if request.method == 'POST':
-        if request.form['name']:
-            editedCategory.name = request.form['name']
-        session.add(editedCategory)
-        session.commit()
-        flash('Type Successfully Edited!')
-        return  redirect(url_for('showCatalog'))
+        edited_category_name = request.form['name']
+        crud_function = crud.editingCategory(edited_category_name)
+        if crud_function:
+            return render_template('editcategory.html', error=crud_function)
+        else:
+            flash('Type Successfuly Edited')
+            return redirect(url_for('showCatalog'))
     else:
         return render_template('editcategory.html',
-                                categories=editedCategory,
-                                category = category)
+                               categories=editedCategory,
+                               category=category)
 
 # Delete a Pokemon Type
+
+
 @app.route('/catalog/<path:category_name>/delete', methods=['GET', 'POST'])
 @login_required
 def deleteCategory(category_name):
-    categoryToDelete = session.query(Category).filter_by(name=category_name).one()
+    categoryToDelete = crud.findCategory(category_name)
     # See if the logged in user is the owner of Type
-    creator = getUserInfo(categoryToDelete.user_id)
-    user = getUserInfo(login_session['user_id'])
+    creator = crud.getUserInfo(categoryToDelete.user_id)
+    user = crud.getUserInfo(login_session['user_id'])
     # If logged in user != Type owner redirect them
     if creator.id != login_session['user_id']:
-        flash ("You cannot delete this Type. This Type belongs to %s" % creator.name)
+        flash(
+            "You cannot delete this Type. This Type belongs to %s" %
+            creator.name)
         return redirect(url_for('showCatalog'))
-    if request.method =='POST':
-        session.delete(categoryToDelete)
-        session.commit()
-        flash('Type Successfully Deleted! '+categoryToDelete.name)
-        return redirect(url_for('showCatalog'))
+    if request.method == 'POST':
+        crud_function = crud.deletingCategory(category_name)
+        if crud_function:
+            return render_template('deletecategory.html', error=crud_function)
+        else:
+            flash('Type Successfuly Deleted')
+            return redirect(url_for('showCatalog'))
     else:
         return render_template('deletecategory.html',
-                                category=categoryToDelete)
+                               category=categoryToDelete)
 
 # Add a Pokemon to the Pokedex DB
+
+
 @app.route('/catalog/add', methods=['GET', 'POST'])
 @login_required
 def addItem():
-    categories = session.query(Category).all()
+    categories = crud.findAllCategories()
     if request.method == 'POST':
-        newItem = Items(
-            name=request.form['name'],
-            description=request.form['description'],
-            picture=request.form['picture'],
-            # Only existing Pokemon types can be used
-            category=session.query(Category).filter_by(name=request.form['category']).one(),
-            date=datetime.datetime.now(),
-            user_id=login_session['user_id'])
-        session.add(newItem)
-        session.commit()
-        flash('Pokemon Successfully Added!')
-        return redirect(url_for('showCatalog'))
+        new_item_name = request.form['name']
+        new_item_date = datetime.datetime.now()
+        new_item_description = request.form['description']
+        new_item_picture = request.form['picture']
+        new_item_category = request.form.get('category')
+        new_user_id = login_session['user_id']
+        crud_function = crud.newItem(
+            new_item_name,
+            new_item_date,
+            new_item_description,
+            new_item_picture,
+            new_item_category,
+            new_user_id)
+        if crud_function:
+            return render_template('additem.html', error=crud_function)
+        else:
+            flash('Pokemon Successfully Added!')
+            return redirect(url_for('showCatalog'))
     else:
         return render_template('additem.html',
-                                categories=categories)
+                               categories=categories)
 
 # Edit a Pokemon
+
+
 @app.route('/item/<path:item_name>/edit', methods=['GET', 'POST'])
 @login_required
 def editItem(item_name):
-    editedItem = session.query(Items).filter_by(name=item_name).one()
-    categories = session.query(Category).all()
+    editedItem = crud.findItem(item_name)
+    categories = crud.findAllCategories()
     # See if the logged in user is the owner of the Pokemon
-    creator = getUserInfo(editedItem.user_id)
-    user = getUserInfo(login_session['user_id'])
+    creator = crud.getUserInfo(editedItem.user_id)
+    user = crud.getUserInfo(login_session['user_id'])
     # If logged in user != Pokemon owner redirect them
     if creator.id != login_session['user_id']:
-        flash ("You cannot edit this Pokemon. This Pokemon belongs to %s" % creator.name)
+        flash(
+            "You cannot edit this Pokemon. This Pokemon belongs to %s" %
+            creator.name)
         return redirect(url_for('showCatalog'))
     # POST methods
     if request.method == 'POST':
         if request.form['name']:
-            editedItem.name = request.form['name']
+            edited_item_name = request.form['name']
         if request.form['description']:
-            editedItem.description = request.form['description']
+            edited_item_description = request.form['description']
         if request.form['picture']:
-            editedItem.picture = request.form['picture']
+            edited_item_picture = request.form['picture']
         if request.form['category']:
-            category = session.query(Category).filter_by(name=request.form['category']).one()
-            editedItem.category = category
-        time = datetime.datetime.now()
-        editedItem.date = time
-        session.add(editedItem)
-        session.commit()
-        flash('Pokemon Successfully Edited!')
-        return  redirect(url_for('showCategory',
-                                category_name=editedItem.category.name))
+            edited_item_category = request.form.get('category')
+        edited_item_date = datetime.datetime.now()
+        crud_function = crud.editingItem(
+            edited_item_name,
+            edited_item_date,
+            edited_item_description,
+            edited_item_picture,
+            edited_item_category)
+        if crud_function:
+            return render_template('edititem.html', error=crud_function)
+        else:
+            flash('Pokemon Successfully Edited!')
+            return redirect(url_for('showCategory',
+                                    category_name=edited_item_category))
     else:
         return render_template('edititem.html',
-                                item=editedItem,
-                                categories=categories)
+                               item=editedItem,
+                               categories=categories)
 
 # Delete a Pokemon
+
+
 @app.route('/item/<path:item_name>/delet', methods=['GET', 'POST'])
 @login_required
 def deleteItem(item_name):
-    itemToDelete = session.query(Items).filter_by(name=item_name).one()
-    categories = session.query(Category).all()
+    itemToDelete = crud.findItem(item_name)
+    categories = crud.findAllCategories()
     # See if the logged in user is the owner of Pokemon
-    creator = getUserInfo(itemToDelete.user_id)
-    user = getUserInfo(login_session['user_id'])
+    creator = crud.getUserInfo(itemToDelete.user_id)
+    user = crud.getUserInfo(login_session['user_id'])
     # If logged in user != Pokemon owner redirect them
     if creator.id != login_session['user_id']:
-        flash ("You cannot delete this Pokemon. This Pokemon belongs to %s" % creator.name)
+        flash(
+            "You cannot delete this Pokemon. This Pokemon belongs to %s" %
+            creator.name)
         return redirect(url_for('showCatalog'))
-    if request.method =='POST':
-        session.delete(itemToDelete)
-        session.commit()
-        flash('Pokemon Successfully Deleted! '+itemToDelete.name)
-        return redirect(url_for('showCategory',
-                                category_name=itemToDelete.category.name))
+    if request.method == 'POST':
+        crud_function = crud.deletingItem(item_name)
+        if crud_function:
+            return render_template('deleteitem.html', error=crud_function)
+        else:
+            flash('Pokemon Successfully Deleted! ' + itemToDelete.name)
+            return redirect(url_for('showCatalog'))
     else:
         return render_template('deleteitem.html',
-                                item=itemToDelete)
+                               item=itemToDelete)
 
 
-#===================
+# ===================
 # JSON
-#===================
+# ===================
 @app.route('/catalog/JSON')
 def allItemsJSON():
-    categories = session.query(Category).all()
+    categories = crud.sortCategoriesByID()
     category_dict = [c.serialize for c in categories]
     for c in range(len(category_dict)):
-        items = [i.serialize for i in session.query(Items)\
-                    .filter_by(category_id=category_dict[c]["id"]).all()]
+        items = crud.findCategoryItemsById(category_id=category_dict[c]["id"])
+        items_dict = [i.serialize for i in items]
         if items:
-            category_dict[c]["Item"] = items
+            category_dict[c]["Items"] = items_dict
     return jsonify(Category=category_dict)
-
-@app.route('/catalog/categories/JSON')
-def categoriesJSON():
-    categories = session.query(Category).all()
-    return jsonify(categories=[c.serialize for c in categories])
-
-@app.route('/catalog/items/JSON')
-def itemsJSON():
-    items = session.query(Items).all()
-    return jsonify(items=[i.serialize for i in items])
-
-@app.route('/catalog/<path:category_name>/items/JSON')
-def categoryItemsJSON(category_name):
-    category = session.query(Category).filter_by(name=category_name).one()
-    items = session.query(Items).filter_by(category=category).all()
-    return jsonify(items=[i.serialize for i in items])
-
-@app.route('/item/<path:item_name>/JSON')
-def ItemJSON(category_name, item_name):
-    category = session.query(Category).filter_by(name=category_name).one()
-    item = session.query(Items).filter_by(name=item_name,\
-                                        category=category).one()
-    return jsonify(item=[item.serialize])
-
 
 
 if __name__ == '__main__':
     app.secret_key = 'DEV_SECRET_KEY'
     app.debug = True
-    app.run(host = '0.0.0.0', port = 5000)
+    app.run(host='0.0.0.0', port=5000)
