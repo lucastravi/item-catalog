@@ -4,6 +4,17 @@ This web app is a project for the Udacity Full Stack Web Developer Nanodegree.
 ## About
 This project is a RESTful web application utilizing Python with the Flask web framework connected with a SQL database to store Pokemon and its respective Pokemon types. Google Oauth2 is used to authenticate users, then they can add, edit and delete their own Pokemon and Pokemon Types. The user can only edit or delete the items created by him.
 
+The main page of the application shows all the categories (types) and the last items added to the database
+<img src="static/img/git1.png" width="100%">
+
+When logged in, you can edit or delete categories that you created
+<img src="static/img/git2.png" width="100%">
+
+The same thing for PokeFlask items
+<img src="static/img/git3.png" width="100%">
+
+<img scr="static/img/git4.png" width="100%">
+
 ## In This Repo
 This project has one main Python module `app.py` which runs the Flask application. A SQL database is created using the `database_setup.py` module and you can populate the PokeFlask with some Pokemon using `database_init.py`.
 The Flask application uses stored HTML templates in the templates folder. PokeFlask also uses CSS (can be found in the static files) and Bootstrap 4.0 (CSS and JS imported from its CDN in base.html)
