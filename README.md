@@ -13,9 +13,6 @@ When logged in, you can edit or delete categories that you created
 The same thing for PokeFlask items
 <img src="static/img/git3.png" width="100%">
 
-View of the edit item page
-<img scr="static/img/git4.png" width="100%">
-
 ## In This Repo
 This project has one main Python module `app.py` which runs the Flask application. A SQL database is created using the `database_setup.py` module and you can populate the PokeFlask with some Pokemon using `database_init.py`.
 The Flask application uses stored HTML templates in the templates folder. PokeFlask also uses CSS (can be found in the static files) and Bootstrap 4.0 (CSS and JS imported from its CDN in base.html)
