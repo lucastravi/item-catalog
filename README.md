@@ -13,6 +13,7 @@ When logged in, you can edit or delete categories that you created
 The same thing for PokeFlask items
 <img src="static/img/git3.png" width="100%">
 
+View of the edit item page
 <img scr="static/img/git4.png" width="100%">
 
 ## In This Repo
